@@ -993,6 +993,8 @@
             <div style="margin-top: 3rem; color: rgba(255,255,255,0.6); font-size: 0.85rem;">
                 <p><i class="fas fa-shield-alt"></i> نظام محمي - جميع الحقوق محفوظة</p>
             </div>
+            <!-- Emergency unlock button (hidden, triple-click to show) -->
+            <button onclick="emergencyUnlock()" style="position: absolute; bottom: 10px; right: 10px; width: 30px; height: 30px; opacity: 0.1; background: transparent; border: none; cursor: pointer;" title="Emergency Unlock"></button>
         </div>
     </div>
 
@@ -1789,6 +1791,18 @@
         localStorage.removeItem('badrLockoutUntil');
     }
 
+    // Emergency unlock function (for admin use)
+    function emergencyUnlock() {
+        resetLockout();
+        localStorage.removeItem('badrLoggedIn');
+        localStorage.removeItem('badrSessionStart');
+        localStorage.removeItem('badrLastActivity');
+        showToast('تم إعادة تعيين النظام', 'success');
+        setTimeout(function() {
+            location.reload();
+        }, 1500);
+    }
+
     function incrementFailedAttempt() {
         securityState.failedAttempts++;
         localStorage.setItem('badrFailedAttempts', securityState.failedAttempts);
@@ -1989,6 +2003,13 @@
     // ═══════════════════════════════════════════════════════════════
     // 🔄 INITIALIZATION
     // ═══════════════════════════════════════════════════════════════
+
+    // Clear any stale lockout data on fresh load (older than current time)
+    const storedLockout = parseInt(localStorage.getItem('badrLockoutUntil') || '0');
+    if (storedLockout > 0 && storedLockout <= Date.now()) {
+        resetLockout();
+    }
+
     updateLockoutDisplay();
 
     if (isLoggedIn()) {
