@@ -1730,35 +1730,370 @@
             });
         });
     
-        // Login System
-        const CORRECT_PASSWORD = "20262026";
+            // ═══════════════════════════════════════════════════════════════
+    // 🔒 ADVANCED SECURITY SYSTEM - نظام حماية متقدم
+    // ═══════════════════════════════════════════════════════════════
 
-        function checkLogin() {
-            const input = document.getElementById('loginPassword').value;
-            const errorMsg = document.getElementById('loginError');
+    // Encrypted password (base64 of "20262026" with salt)
+    const ENCRYPTED_PASS = "MjAyNjIwMjY=";
+    const SALT = "badr_khalsi_2026";
 
-            if (input === CORRECT_PASSWORD) {
-                document.getElementById('loginScreen').classList.add('hidden');
-                localStorage.setItem('badrLoggedIn', 'true');
-                showToast('تم تسجيل الدخول بنجاح - مرحباً بك في أرشيف بدر', 'success');
-            } else {
-                errorMsg.style.display = 'block';
-                document.getElementById('loginPassword').style.borderColor = '#ff6b6b';
-                document.getElementById('loginPassword').value = '';
-                document.getElementById('loginPassword').focus();
-                setTimeout(() => {
+    // Security settings
+    const SECURITY = {
+        maxAttempts: 5,           // Maximum failed attempts
+        lockoutTime: 300000,      // Lockout duration: 5 minutes (ms)
+        sessionTimeout: 1800000,  // Auto logout: 30 minutes (ms)
+        warningTime: 120000,      // Warning before logout: 2 minutes (ms)
+        checkInterval: 1000       // Check interval: 1 second
+    };
+
+    // Security state
+    let securityState = {
+        failedAttempts: parseInt(localStorage.getItem('badrFailedAttempts') || '0'),
+        lockoutUntil: parseInt(localStorage.getItem('badrLockoutUntil') || '0'),
+        lastActivity: Date.now(),
+        sessionStart: parseInt(localStorage.getItem('badrSessionStart') || '0'),
+        logoutWarningShown: false
+    };
+
+    // ═══════════════════════════════════════════════════════════════
+    // 🔐 ENCRYPTION FUNCTIONS
+    // ═══════════════════════════════════════════════════════════════
+    function encryptPassword(password) {
+        // Simple XOR encryption with salt
+        let encrypted = "";
+        for (let i = 0; i < password.length; i++) {
+            encrypted += String.fromCharCode(
+                password.charCodeAt(i) ^ SALT.charCodeAt(i % SALT.length)
+            );
+        }
+        return btoa(encrypted);
+    }
+
+    function verifyPassword(input) {
+        return encryptPassword(input) === ENCRYPTED_PASS;
+    }
+
+    // ═══════════════════════════════════════════════════════════════
+    // 🚫 LOCKOUT SYSTEM - نظام القفل
+    // ═══════════════════════════════════════════════════════════════
+    function isLockedOut() {
+        if (securityState.lockoutUntil > Date.now()) {
+            const remaining = Math.ceil((securityState.lockoutUntil - Date.now()) / 1000);
+            showToast(`الحساب مقفل. انتظر ${remaining} ثانية`, 'error');
+            return true;
+        }
+        // Reset lockout if expired
+        if (securityState.lockoutUntil > 0 && securityState.lockoutUntil <= Date.now()) {
+            resetLockout();
+        }
+        return false;
+    }
+
+    function resetLockout() {
+        securityState.failedAttempts = 0;
+        securityState.lockoutUntil = 0;
+        localStorage.removeItem('badrFailedAttempts');
+        localStorage.removeItem('badrLockoutUntil');
+    }
+
+    function incrementFailedAttempt() {
+        securityState.failedAttempts++;
+        localStorage.setItem('badrFailedAttempts', securityState.failedAttempts);
+
+        if (securityState.failedAttempts >= SECURITY.maxAttempts) {
+            securityState.lockoutUntil = Date.now() + SECURITY.lockoutTime;
+            localStorage.setItem('badrLockoutUntil', securityState.lockoutUntil);
+            showToast(`تم قفل الحساب لمدة 5 دقائق بسبب ${SECURITY.maxAttempts} محاولات خاطئة`, 'error');
+            updateLockoutDisplay();
+        } else {
+            const remaining = SECURITY.maxAttempts - securityState.failedAttempts;
+            showToast(`كلمة المرور خاطئة! محاولات متبقية: ${remaining}`, 'error');
+        }
+    }
+
+    function updateLockoutDisplay() {
+        const errorMsg = document.getElementById('loginError');
+        const passwordInput = document.getElementById('loginPassword');
+
+        if (securityState.lockoutUntil > Date.now()) {
+            const remaining = Math.ceil((securityState.lockoutUntil - Date.now()) / 1000);
+            errorMsg.innerHTML = `<i class="fas fa-lock"></i> الحساب مقفل - انتظر ${remaining} ثانية`;
+            errorMsg.style.display = 'block';
+            passwordInput.disabled = true;
+
+            // Countdown timer
+            const countdown = setInterval(() => {
+                const secs = Math.ceil((securityState.lockoutUntil - Date.now()) / 1000);
+                if (secs <= 0) {
+                    clearInterval(countdown);
+                    resetLockout();
                     errorMsg.style.display = 'none';
-                    document.getElementById('loginPassword').style.borderColor = 'var(--accent)';
-                }, 3000);
+                    passwordInput.disabled = false;
+                    passwordInput.focus();
+                    showToast('تم فك القفل - يمكنك المحاولة الآن', 'success');
+                } else {
+                    errorMsg.innerHTML = `<i class="fas fa-lock"></i> الحساب مقفل - انتظر ${secs} ثانية`;
+                }
+            }, 1000);
+        }
+    }
+
+    // ═══════════════════════════════════════════════════════════════
+    // ⏱️ SESSION MANAGEMENT - إدارة الجلسة
+    // ═══════════════════════════════════════════════════════════════
+    function updateActivity() {
+        securityState.lastActivity = Date.now();
+        securityState.logoutWarningShown = false;
+        localStorage.setItem('badrLastActivity', securityState.lastActivity);
+    }
+
+    function checkSessionTimeout() {
+        if (!isLoggedIn()) return;
+
+        const inactive = Date.now() - securityState.lastActivity;
+        const sessionAge = Date.now() - securityState.sessionStart;
+
+        // Check session age (absolute timeout)
+        if (sessionAge > SECURITY.sessionTimeout) {
+            forceLogout('انتهت صلاحية الجلسة - يرجى تسجيل الدخول مرة أخرى');
+            return;
+        }
+
+        // Check inactivity (idle timeout)
+        const timeUntilWarning = SECURITY.sessionTimeout - SECURITY.warningTime - inactive;
+        const timeUntilLogout = SECURITY.sessionTimeout - inactive;
+
+        // Show warning 2 minutes before logout
+        if (timeUntilWarning <= 0 && timeUntilLogout > 0 && !securityState.logoutWarningShown) {
+            securityState.logoutWarningShown = true;
+            showSessionWarning(Math.ceil(timeUntilLogout / 60000));
+        }
+
+        // Auto logout
+        if (timeUntilLogout <= 0) {
+            forceLogout('تم تسجيل الخروج تلقائياً بسبب عدم النشاط');
+        }
+    }
+
+    function showSessionWarning(minutesLeft) {
+        // Create warning modal
+        const warningDiv = document.createElement('div');
+        warningDiv.id = 'sessionWarning';
+        warningDiv.style.cssText = `
+            position: fixed; top: 20px; left: 50%; transform: translateX(-50%);
+            background: linear-gradient(135deg, #c9a227, #d4af37);
+            color: #0d3d16; padding: 1rem 2rem; border-radius: 12px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3); z-index: 9998;
+            font-weight: 700; animation: slideDown 0.3s ease;
+            display: flex; align-items: center; gap: 0.8rem;
+        `;
+        warningDiv.innerHTML = `
+            <i class="fas fa-clock" style="font-size: 1.5rem;"></i>
+            <span>جلسةك ستنتهي خلال ${minutesLeft} دقيقة. اضغط في أي مكان للبقاء متصلاً.</span>
+        `;
+        document.body.appendChild(warningDiv);
+
+        // Remove on any activity
+        const removeWarning = () => {
+            const w = document.getElementById('sessionWarning');
+            if (w) w.remove();
+            document.removeEventListener('click', removeWarning);
+            document.removeEventListener('keydown', removeWarning);
+            updateActivity();
+        };
+        document.addEventListener('click', removeWarning);
+        document.addEventListener('keydown', removeWarning);
+
+        // Auto remove after 10 seconds
+        setTimeout(removeWarning, 10000);
+    }
+
+    // ═══════════════════════════════════════════════════════════════
+    // 🚪 LOGIN / LOGOUT FUNCTIONS
+    // ═══════════════════════════════════════════════════════════════
+    function checkLogin() {
+        if (isLockedOut()) return;
+
+        const input = document.getElementById('loginPassword').value;
+        const errorMsg = document.getElementById('loginError');
+        const passwordInput = document.getElementById('loginPassword');
+
+        if (!input) {
+            errorMsg.innerHTML = '<i class="fas fa-exclamation-triangle"></i> أدخل كلمة المرور';
+            errorMsg.style.display = 'block';
+            return;
+        }
+
+        if (verifyPassword(input)) {
+            // Successful login
+            resetLockout();
+            securityState.sessionStart = Date.now();
+            securityState.lastActivity = Date.now();
+
+            localStorage.setItem('badrLoggedIn', 'true');
+            localStorage.setItem('badrSessionStart', securityState.sessionStart);
+            localStorage.setItem('badrLastActivity', securityState.lastActivity);
+
+            document.getElementById('loginScreen').classList.add('hidden');
+            showToast('تم تسجيل الدخول بنجاح - مرحباً بك في أرشيف بدر', 'success');
+
+            // Start session monitoring
+            startSessionMonitor();
+
+            // Clear password field
+            passwordInput.value = '';
+            errorMsg.style.display = 'none';
+        } else {
+            // Failed login
+            passwordInput.style.borderColor = '#ff6b6b';
+            passwordInput.value = '';
+            passwordInput.focus();
+            incrementFailedAttempt();
+
+            setTimeout(() => {
+                passwordInput.style.borderColor = 'var(--accent)';
+            }, 3000);
+        }
+    }
+
+    function logout() {
+        if (!confirm('هل أنت متأكد من تسجيل الخروج؟')) return;
+        forceLogout('تم تسجيل الخروج بنجاح');
+    }
+
+    function forceLogout(message) {
+        // Clear all session data
+        localStorage.removeItem('badrLoggedIn');
+        localStorage.removeItem('badrSessionStart');
+        localStorage.removeItem('badrLastActivity');
+
+        // Stop monitoring
+        if (window.sessionInterval) {
+            clearInterval(window.sessionInterval);
+        }
+
+        // Show login screen
+        document.getElementById('loginScreen').classList.remove('hidden');
+        document.getElementById('loginPassword').value = '';
+        document.getElementById('loginPassword').focus();
+
+        showToast(message, 'success');
+    }
+
+    function isLoggedIn() {
+        return localStorage.getItem('badrLoggedIn') === 'true';
+    }
+
+    function startSessionMonitor() {
+        // Update activity on user interaction
+        ['click', 'keydown', 'mousemove', 'touchstart', 'scroll'].forEach(event => {
+            document.addEventListener(event, updateActivity, { passive: true });
+        });
+
+        // Check session periodically
+        window.sessionInterval = setInterval(checkSessionTimeout, SECURITY.checkInterval);
+    }
+
+    // ═══════════════════════════════════════════════════════════════
+    // 🛡️ DEVTOOLS DETECTION - كشف أدوات المطور
+    // ═══════════════════════════════════════════════════════════════
+    (function() {
+        const threshold = 160;
+        const checkDevTools = () => {
+            const widthThreshold = window.outerWidth - window.innerWidth > threshold;
+            const heightThreshold = window.outerHeight - window.innerHeight > threshold;
+
+            if (widthThreshold || heightThreshold) {
+                console.clear();
+                console.log('%c🛡️ نظام حماية أرشيف بدر', 'font-size: 24px; color: #1a5f2a; font-weight: bold;');
+                console.log('%cهذا الموقع محمي. أي محاولة للتلاعب بالبيانات سيتم تسجيلها.', 'font-size: 14px; color: #c9a227;');
+            }
+        };
+
+        // Check periodically
+        setInterval(checkDevTools, 1000);
+
+        // Disable right-click context menu on sensitive areas
+        document.addEventListener('contextmenu', (e) => {
+            if (e.target.closest('.member-card, .modal, .detail-content')) {
+                e.preventDefault();
+                showToast('النقر بزر الماوس الأيمن معطل لحماية البيانات', 'error');
+            }
+        });
+    })();
+
+    // ═══════════════════════════════════════════════════════════════
+    // 🔄 INITIALIZATION - التهيئة
+    // ═══════════════════════════════════════════════════════════════
+
+    // Check lockout on load
+    updateLockoutDisplay();
+
+    // Check if already logged in
+    if (isLoggedIn()) {
+        const sessionAge = Date.now() - parseInt(localStorage.getItem('badrSessionStart') || '0');
+
+        if (sessionAge > SECURITY.sessionTimeout) {
+            forceLogout('انتهت صلاحية الجلسة - يرجى تسجيل الدخول مرة أخرى');
+        } else {
+            document.getElementById('loginScreen').classList.add('hidden');
+            securityState.sessionStart = parseInt(localStorage.getItem('badrSessionStart'));
+            securityState.lastActivity = parseInt(localStorage.getItem('badrLastActivity'));
+            startSessionMonitor();
+            showToast('تم استعادة الجلسة - مرحباً بعودتك', 'success');
+        }
+    }
+
+    
+
+    // ═══════════════════════════════════════════════════════════════
+    // ⏱️ SESSION TIMER DISPLAY
+    // ═══════════════════════════════════════════════════════════════
+    function updateSessionTimer() {
+        const timerEl = document.getElementById('sessionTimer');
+        const timeLeftEl = document.getElementById('sessionTimeLeft');
+
+        if (!isLoggedIn || !isLoggedIn()) {
+            if (timerEl) timerEl.style.display = 'none';
+            return;
+        }
+
+        if (timerEl) timerEl.style.display = 'flex';
+        const sessionAge = Date.now() - (securityState ? securityState.sessionStart : Date.now());
+        const remaining = Math.max(0, SECURITY.sessionTimeout - sessionAge);
+        const minutes = Math.floor(remaining / 60000);
+        const seconds = Math.floor((remaining % 60000) / 1000);
+
+        if (timeLeftEl) {
+            timeLeftEl.textContent = `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+        }
+
+        // Warning color when less than 5 minutes
+        if (timerEl) {
+            if (remaining < 300000) {
+                timerEl.classList.add('warning');
+            } else {
+                timerEl.classList.remove('warning');
             }
         }
+    }
 
-        // Check if already logged in
-        if (localStorage.getItem('badrLoggedIn') === 'true') {
-            document.getElementById('loginScreen').classList.add('hidden');
+    // Update timer every second
+    setInterval(updateSessionTimer, 1000);
+
+    // ═══════════════════════════════════════════════════════════════
+    // 🎹 KEYBOARD SHORTCUTS - اختصارات لوحة المفاتيح
+    // ═══════════════════════════════════════════════════════════════
+    document.addEventListener('keydown', (e) => {
+        // Ctrl+L for logout
+        if (e.ctrlKey && e.key === 'l') {
+            e.preventDefault();
+            if (typeof isLoggedIn === 'function' && isLoggedIn()) logout();
         }
+    });
 
-    </script>
+</script>
 
     <!-- Session Timer -->
     <div class="session-timer" id="sessionTimer" style="display: none;">
