@@ -1,0 +1,1620 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>أرشيف بدر الخالص - نظام إدارة المنظمين</title>
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root {
+            --primary: #1a5f2a;
+            --primary-dark: #0d3d16;
+            --primary-light: #2d8a3e;
+            --accent: #c9a227;
+            --accent-light: #e8d47a;
+            --bg: #f0f4f0;
+            --card-bg: #ffffff;
+            --text: #1a1a1a;
+            --text-light: #555;
+            --border: #d0d9d0;
+            --shadow: 0 4px 20px rgba(0,0,0,0.08);
+            --shadow-hover: 0 8px 30px rgba(0,0,0,0.15);
+            --radius: 16px;
+            --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            font-family: 'Cairo', sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            min-height: 100vh;
+            line-height: 1.6;
+        }
+
+        /* Header */
+        .header {
+            background: linear-gradient(135deg, var(--primary-dark) 0%, var(--primary) 50%, var(--primary-light) 100%);
+            color: white;
+            padding: 2rem 1rem;
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.2);
+        }
+
+        .header::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: radial-gradient(circle, rgba(255,255,255,0.1) 1px, transparent 1px);
+            background-size: 20px 20px;
+            opacity: 0.3;
+        }
+
+        .header-content { position: relative; z-index: 1; }
+
+        .header h1 {
+            font-size: 2.2rem;
+            font-weight: 900;
+            margin-bottom: 0.5rem;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+
+        .header .subtitle {
+            font-size: 1.1rem;
+            opacity: 0.9;
+            margin-bottom: 1rem;
+        }
+
+        .header .author {
+            display: inline-block;
+            background: rgba(255,255,255,0.15);
+            padding: 0.5rem 1.5rem;
+            border-radius: 50px;
+            font-size: 0.9rem;
+            border: 1px solid rgba(255,255,255,0.3);
+            margin-top: 0.5rem;
+        }
+
+        .header .author i { margin-left: 0.5rem; color: var(--accent-light); }
+
+        /* Stats Bar */
+        .stats-bar {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 1rem;
+            max-width: 1200px;
+            margin: -2rem auto 2rem;
+            padding: 0 1rem;
+            position: relative;
+            z-index: 2;
+        }
+
+        .stat-card {
+            background: var(--card-bg);
+            padding: 1.5rem;
+            border-radius: var(--radius);
+            box-shadow: var(--shadow);
+            text-align: center;
+            transition: var(--transition);
+            border-top: 4px solid var(--primary);
+        }
+
+        .stat-card:hover { transform: translateY(-5px); box-shadow: var(--shadow-hover); }
+        .stat-card i { font-size: 2rem; color: var(--primary); margin-bottom: 0.5rem; }
+        .stat-card .number { font-size: 2rem; font-weight: 900; color: var(--primary-dark); }
+        .stat-card .label { color: var(--text-light); font-size: 0.9rem; }
+
+        /* Container */
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 0 1rem 3rem;
+        }
+
+        /* Toolbar */
+        .toolbar {
+            background: var(--card-bg);
+            padding: 1.5rem;
+            border-radius: var(--radius);
+            box-shadow: var(--shadow);
+            margin-bottom: 2rem;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 1rem;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .search-box {
+            flex: 1;
+            min-width: 250px;
+            position: relative;
+        }
+
+        .search-box input {
+            width: 100%;
+            padding: 0.9rem 3rem 0.9rem 1rem;
+            border: 2px solid var(--border);
+            border-radius: 12px;
+            font-family: 'Cairo', sans-serif;
+            font-size: 1rem;
+            transition: var(--transition);
+            background: var(--bg);
+        }
+
+        .search-box input:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 4px rgba(26, 95, 42, 0.1);
+        }
+
+        .search-box i {
+            position: absolute;
+            right: 1rem;
+            top: 50%;
+            transform: translateY(-50%);
+            color: var(--text-light);
+        }
+
+        .filter-group {
+            display: flex;
+            gap: 0.5rem;
+            flex-wrap: wrap;
+        }
+
+        .btn {
+            padding: 0.8rem 1.5rem;
+            border: none;
+            border-radius: 10px;
+            font-family: 'Cairo', sans-serif;
+            font-size: 0.95rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: var(--transition);
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, var(--primary), var(--primary-light));
+            color: white;
+            box-shadow: 0 4px 15px rgba(26, 95, 42, 0.3);
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(26, 95, 42, 0.4);
+        }
+
+        .btn-secondary {
+            background: var(--bg);
+            color: var(--text);
+            border: 2px solid var(--border);
+        }
+
+        .btn-secondary:hover { background: var(--border); }
+
+        .btn-accent {
+            background: linear-gradient(135deg, var(--accent), #d4af37);
+            color: var(--primary-dark);
+            box-shadow: 0 4px 15px rgba(201, 162, 39, 0.3);
+        }
+
+        .btn-accent:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(201, 162, 39, 0.4);
+        }
+
+        .btn-danger { background: #dc3545; color: white; }
+        .btn-danger:hover { background: #c82333; }
+
+        /* Cards Grid */
+        .cards-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+            gap: 1.5rem;
+        }
+
+        .member-card {
+            background: var(--card-bg);
+            border-radius: var(--radius);
+            box-shadow: var(--shadow);
+            overflow: hidden;
+            transition: var(--transition);
+            cursor: pointer;
+            position: relative;
+        }
+
+        .member-card:hover {
+            transform: translateY(-8px);
+            box-shadow: var(--shadow-hover);
+        }
+
+        .member-card::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 5px;
+            background: linear-gradient(90deg, var(--primary), var(--accent));
+            opacity: 0;
+            transition: var(--transition);
+        }
+
+        .member-card:hover::after { opacity: 1; }
+
+        .card-header {
+            padding: 1.5rem;
+            display: flex;
+            gap: 1rem;
+            align-items: flex-start;
+        }
+
+        .member-photo {
+            width: 90px;
+            height: 90px;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 4px solid var(--bg);
+            box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+            flex-shrink: 0;
+        }
+
+        .member-info h3 {
+            font-size: 1.2rem;
+            color: var(--primary-dark);
+            margin-bottom: 0.3rem;
+        }
+
+        .member-role {
+            display: inline-block;
+            background: linear-gradient(135deg, var(--primary-light), var(--primary));
+            color: white;
+            padding: 0.2rem 0.8rem;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+        }
+
+        .member-category {
+            color: var(--text-light);
+            font-size: 0.85rem;
+            display: flex;
+            align-items: center;
+            gap: 0.3rem;
+        }
+
+        .card-body {
+            padding: 0 1.5rem 1.5rem;
+        }
+
+        .info-row {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.5rem 0;
+            border-bottom: 1px solid var(--border);
+            font-size: 0.9rem;
+        }
+
+        .info-row:last-child { border-bottom: none; }
+        .info-row i { color: var(--primary); width: 20px; }
+        .info-row .label { color: var(--text-light); min-width: 80px; }
+        .info-row .value { font-weight: 600; color: var(--text); }
+
+        .card-footer {
+            padding: 1rem 1.5rem;
+            background: var(--bg);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .docs-count {
+            display: flex;
+            align-items: center;
+            gap: 0.3rem;
+            color: var(--text-light);
+            font-size: 0.85rem;
+        }
+
+        .docs-count i { color: var(--accent); }
+
+        .card-actions {
+            display: flex;
+            gap: 0.5rem;
+        }
+
+        .icon-btn {
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            border: none;
+            background: white;
+            color: var(--primary);
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: var(--transition);
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+
+        .icon-btn:hover {
+            background: var(--primary);
+            color: white;
+            transform: scale(1.1);
+        }
+
+        .icon-btn.print-btn:hover { background: var(--accent); color: var(--primary-dark); }
+        .icon-btn.delete-btn:hover { background: #dc3545; color: white; }
+
+        /* Modal */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0,0,0,0.6);
+            backdrop-filter: blur(5px);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+            padding: 1rem;
+        }
+
+        .modal-overlay.active { display: flex; }
+
+        .modal {
+            background: var(--card-bg);
+            border-radius: var(--radius);
+            width: 100%;
+            max-width: 900px;
+            max-height: 90vh;
+            overflow-y: auto;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            animation: modalIn 0.3s ease;
+        }
+
+        @keyframes modalIn {
+            from { opacity: 0; transform: scale(0.9) translateY(20px); }
+            to { opacity: 1; transform: scale(1) translateY(0); }
+        }
+
+        .modal-header {
+            padding: 1.5rem;
+            border-bottom: 2px solid var(--border);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: linear-gradient(135deg, var(--bg), white);
+        }
+
+        .modal-header h2 { color: var(--primary-dark); font-size: 1.5rem; }
+
+        .close-btn {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            border: none;
+            background: var(--bg);
+            color: var(--text);
+            cursor: pointer;
+            font-size: 1.2rem;
+            transition: var(--transition);
+        }
+
+        .close-btn:hover { background: #dc3545; color: white; }
+
+        .modal-body { padding: 1.5rem; }
+
+        .form-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 1.5rem;
+        }
+
+        .form-group { display: flex; flex-direction: column; gap: 0.5rem; }
+
+        .form-group label {
+            font-weight: 700;
+            color: var(--primary-dark);
+            font-size: 0.9rem;
+        }
+
+        .form-group input,
+        .form-group select,
+        .form-group textarea {
+            padding: 0.8rem 1rem;
+            border: 2px solid var(--border);
+            border-radius: 10px;
+            font-family: 'Cairo', sans-serif;
+            font-size: 1rem;
+            transition: var(--transition);
+            background: var(--bg);
+        }
+
+        .form-group input:focus,
+        .form-group select:focus,
+        .form-group textarea:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 4px rgba(26, 95, 42, 0.1);
+        }
+
+        .form-group textarea { min-height: 100px; resize: vertical; }
+
+        .photo-upload {
+            border: 3px dashed var(--border);
+            border-radius: 12px;
+            padding: 2rem;
+            text-align: center;
+            cursor: pointer;
+            transition: var(--transition);
+            background: var(--bg);
+        }
+
+        .photo-upload:hover {
+            border-color: var(--primary);
+            background: rgba(26, 95, 42, 0.05);
+        }
+
+        .photo-upload i { font-size: 3rem; color: var(--primary); margin-bottom: 1rem; }
+        .photo-upload p { color: var(--text-light); }
+        .photo-upload input { display: none; }
+
+        .photo-preview {
+            width: 150px;
+            height: 150px;
+            border-radius: 50%;
+            object-fit: cover;
+            margin: 1rem auto;
+            border: 4px solid var(--primary);
+            display: none;
+        }
+
+        .photo-preview.active { display: block; }
+
+        .docs-section {
+            margin-top: 2rem;
+            padding-top: 2rem;
+            border-top: 2px solid var(--border);
+        }
+
+        .docs-section h3 {
+            color: var(--primary-dark);
+            margin-bottom: 1rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .docs-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+            gap: 1rem;
+        }
+
+        .doc-item {
+            position: relative;
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: var(--shadow);
+            cursor: pointer;
+            transition: var(--transition);
+        }
+
+        .doc-item:hover { transform: scale(1.05); }
+
+        .doc-item img {
+            width: 100%;
+            height: 150px;
+            object-fit: cover;
+        }
+
+        .doc-item .doc-name {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: linear-gradient(transparent, rgba(0,0,0,0.8));
+            color: white;
+            padding: 2rem 0.5rem 0.5rem;
+            font-size: 0.8rem;
+            text-align: center;
+        }
+
+        .doc-item .remove-doc {
+            position: absolute;
+            top: 5px;
+            left: 5px;
+            width: 28px;
+            height: 28px;
+            border-radius: 50%;
+            background: #dc3545;
+            color: white;
+            border: none;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.8rem;
+        }
+
+        .add-doc-btn {
+            border: 3px dashed var(--border);
+            border-radius: 12px;
+            height: 150px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: var(--transition);
+            background: var(--bg);
+            color: var(--text-light);
+        }
+
+        .add-doc-btn:hover {
+            border-color: var(--primary);
+            color: var(--primary);
+            background: rgba(26, 95, 42, 0.05);
+        }
+
+        .modal-footer {
+            padding: 1.5rem;
+            border-top: 2px solid var(--border);
+            display: flex;
+            justify-content: flex-end;
+            gap: 1rem;
+            background: var(--bg);
+        }
+
+        /* Detail Modal */
+        .detail-content {
+            display: grid;
+            grid-template-columns: 1fr 2fr;
+            gap: 2rem;
+        }
+
+        @media (max-width: 768px) {
+            .detail-content { grid-template-columns: 1fr; }
+            .header h1 { font-size: 1.5rem; }
+        }
+
+        .detail-photo-section {
+            text-align: center;
+        }
+
+        .detail-photo {
+            width: 200px;
+            height: 200px;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 6px solid var(--primary);
+            box-shadow: 0 8px 30px rgba(0,0,0,0.2);
+            margin-bottom: 1rem;
+        }
+
+        .detail-name {
+            font-size: 1.5rem;
+            font-weight: 900;
+            color: var(--primary-dark);
+        }
+
+        .detail-role {
+            background: linear-gradient(135deg, var(--primary), var(--primary-light));
+            color: white;
+            padding: 0.3rem 1.5rem;
+            border-radius: 25px;
+            display: inline-block;
+            margin-top: 0.5rem;
+            font-weight: 600;
+        }
+
+        .detail-info { display: flex; flex-direction: column; gap: 1rem; }
+
+        .detail-info-item {
+            background: var(--bg);
+            padding: 1rem;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .detail-info-item i {
+            width: 45px;
+            height: 45px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, var(--primary), var(--primary-light));
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.2rem;
+        }
+
+        .detail-info-item .info-content h4 {
+            color: var(--text-light);
+            font-size: 0.85rem;
+            margin-bottom: 0.2rem;
+        }
+
+        .detail-info-item .info-content p {
+            font-weight: 700;
+            color: var(--primary-dark);
+            font-size: 1.1rem;
+        }
+
+        .detail-docs {
+            grid-column: 1 / -1;
+            margin-top: 1rem;
+        }
+
+        .detail-docs h3 {
+            color: var(--primary-dark);
+            margin-bottom: 1rem;
+            padding-bottom: 0.5rem;
+            border-bottom: 2px solid var(--primary);
+        }
+
+        .detail-docs-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            gap: 1rem;
+        }
+
+        .detail-doc-item {
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: var(--shadow);
+            transition: var(--transition);
+            cursor: pointer;
+        }
+
+        .detail-doc-item:hover { transform: translateY(-5px); box-shadow: var(--shadow-hover); }
+
+        .detail-doc-item img {
+            width: 100%;
+            height: 200px;
+            object-fit: cover;
+        }
+
+        .detail-doc-item p {
+            padding: 0.8rem;
+            text-align: center;
+            font-weight: 600;
+            color: var(--primary-dark);
+            background: var(--bg);
+        }
+
+        /* Print Styles */
+        @media print {
+            body * { visibility: hidden; }
+            .print-area, .print-area * { visibility: visible; }
+            .print-area {
+                position: absolute;
+                left: 0;
+                top: 0;
+                width: 100%;
+                padding: 2rem;
+            }
+            .no-print { display: none !important; }
+        }
+
+        .print-area {
+            background: white;
+            padding: 2rem;
+            border-radius: var(--radius);
+        }
+
+        .print-header {
+            text-align: center;
+            border-bottom: 3px double var(--primary);
+            padding-bottom: 1.5rem;
+            margin-bottom: 2rem;
+        }
+
+        .print-header h1 { color: var(--primary-dark); font-size: 2rem; }
+        .print-header .print-date { color: var(--text-light); margin-top: 0.5rem; }
+
+        .print-content {
+            display: grid;
+            grid-template-columns: auto 1fr;
+            gap: 2rem;
+            align-items: start;
+        }
+
+        .print-photo {
+            width: 180px;
+            height: 180px;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 4px solid var(--primary);
+        }
+
+        .print-info { display: flex; flex-direction: column; gap: 0.8rem; }
+
+        .print-info-row {
+            display: flex;
+            border-bottom: 1px solid var(--border);
+            padding-bottom: 0.5rem;
+        }
+
+        .print-info-row .print-label {
+            font-weight: 700;
+            color: var(--primary-dark);
+            min-width: 120px;
+        }
+
+        .print-docs-section { margin-top: 2rem; }
+        .print-docs-section h3 {
+            color: var(--primary-dark);
+            border-bottom: 2px solid var(--primary);
+            padding-bottom: 0.5rem;
+            margin-bottom: 1rem;
+        }
+
+        .print-docs-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 1rem;
+        }
+
+        .print-doc-item {
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            overflow: hidden;
+            text-align: center;
+        }
+
+        .print-doc-item img {
+            width: 100%;
+            height: 150px;
+            object-fit: cover;
+        }
+
+        .print-doc-item p { padding: 0.5rem; font-size: 0.9rem; }
+
+        .print-footer {
+            margin-top: 3rem;
+            text-align: center;
+            border-top: 2px solid var(--primary);
+            padding-top: 1rem;
+            color: var(--text-light);
+            font-size: 0.9rem;
+        }
+
+        /* Empty State */
+        .empty-state {
+            text-align: center;
+            padding: 4rem 2rem;
+            color: var(--text-light);
+        }
+
+        .empty-state i { font-size: 5rem; color: var(--border); margin-bottom: 1rem; }
+        .empty-state h3 { color: var(--text); margin-bottom: 0.5rem; }
+
+        /* Toast Notification */
+        .toast {
+            position: fixed;
+            bottom: 2rem;
+            left: 50%;
+            transform: translateX(-50%) translateY(100px);
+            background: var(--primary-dark);
+            color: white;
+            padding: 1rem 2rem;
+            border-radius: 50px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+            z-index: 2000;
+            opacity: 0;
+            transition: all 0.3s ease;
+            font-weight: 600;
+        }
+
+        .toast.show {
+            transform: translateX(-50%) translateY(0);
+            opacity: 1;
+        }
+
+        .toast.success { background: var(--primary); }
+        .toast.error { background: #dc3545; }
+
+        /* Image Viewer */
+        .image-viewer {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0,0,0,0.9);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 3000;
+            padding: 2rem;
+        }
+
+        .image-viewer.active { display: flex; }
+
+        .image-viewer img {
+            max-width: 90%;
+            max-height: 90%;
+            border-radius: 8px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.5);
+        }
+
+        .image-viewer .close-viewer {
+            position: absolute;
+            top: 2rem;
+            right: 2rem;
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            background: rgba(255,255,255,0.2);
+            color: white;
+            border: none;
+            font-size: 1.5rem;
+            cursor: pointer;
+            transition: var(--transition);
+        }
+
+        .image-viewer .close-viewer:hover { background: #dc3545; }
+
+        /* Loading */
+        .loading {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 3px solid rgba(255,255,255,0.3);
+            border-radius: 50%;
+            border-top-color: white;
+            animation: spin 1s ease-in-out infinite;
+        }
+
+        @keyframes spin { to { transform: rotate(360deg); } }
+
+        /* Scrollbar */
+        ::-webkit-scrollbar { width: 8px; }
+        ::-webkit-scrollbar-track { background: var(--bg); }
+        ::-webkit-scrollbar-thumb { background: var(--primary); border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: var(--primary-dark); }
+    </style>
+</head>
+<body>
+    <!-- Login Screen -->
+    <div id="loginScreen" style="position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: linear-gradient(135deg, #0d3d16 0%, #1a5f2a 50%, #2d8a3e 100%); z-index: 9999; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 2rem; transition: opacity 0.8s ease, visibility 0.8s ease;">
+        <div style="text-align: center; animation: fadeInUp 1s ease;">
+            <!-- Logo -->
+            <div style="width: 200px; height: 200px; margin: 0 auto 2rem; animation: pulse 2s infinite;">
+                <img src="https://upload.wikimedia.org/wikipedia/ar/4/4b/%D8%B4%D8%B9%D8%A7%D8%B1_%D9%85%D9%86%D8%B8%D9%85%D8%A9_%D8%A8%D8%AF%D8%B1.jpeg" 
+                     alt="شعار منظمة بدر" 
+                     style="width: 100%; height: 100%; object-fit: contain; border-radius: 50%; border: 6px solid var(--accent); box-shadow: 0 20px 60px rgba(0,0,0,0.4); background: white; padding: 8px;">
+            </div>
+
+            <h1 style="color: white; font-size: 2.5rem; font-weight: 900; margin-bottom: 0.5rem; text-shadow: 2px 2px 10px rgba(0,0,0,0.3);">منظمة بدر</h1>
+            <p style="color: rgba(255,255,255,0.8); font-size: 1.2rem; margin-bottom: 2rem;">أرشيف بدر الخالص - نظام إدارة البيانات</p>
+
+            <!-- Password Input -->
+            <div style="max-width: 320px; margin: 0 auto;">
+                <div style="position: relative; margin-bottom: 1rem;">
+                    <i class="fas fa-lock" style="position: absolute; right: 1rem; top: 50%; transform: translateY(-50%); color: var(--primary); font-size: 1.2rem;"></i>
+                    <input type="password" id="loginPassword" placeholder="أدخل كلمة المرور" style="width: 100%; padding: 1rem 3rem 1rem 1rem; border: 3px solid var(--accent); border-radius: 12px; font-family: 'Cairo', sans-serif; font-size: 1.1rem; text-align: center; letter-spacing: 4px; background: white; transition: all 0.3s ease;" onkeydown="if(event.key==='Enter') checkLogin()">
+                </div>
+                <p id="loginError" style="color: #ff6b6b; font-weight: 700; margin-bottom: 1rem; display: none; text-shadow: 1px 1px 2px rgba(0,0,0,0.3);"><i class="fas fa-exclamation-triangle"></i> كلمة المرور غير صحيحة</p>
+                <button onclick="checkLogin()" style="width: 100%; padding: 1rem; background: linear-gradient(135deg, var(--accent), #d4af37); color: var(--primary-dark); border: none; border-radius: 12px; font-family: 'Cairo', sans-serif; font-size: 1.1rem; font-weight: 700; cursor: pointer; transition: all 0.3s ease; box-shadow: 0 8px 25px rgba(201, 162, 39, 0.4);">
+                    <i class="fas fa-sign-in-alt"></i> دخول
+                </button>
+            </div>
+
+            <div style="margin-top: 3rem; color: rgba(255,255,255,0.6); font-size: 0.85rem;">
+                <p><i class="fas fa-shield-alt"></i> نظام محمي - جميع الحقوق محفوظة</p>
+            </div>
+        </div>
+    </div>
+
+    <style>
+        @keyframes fadeInUp {
+            from { opacity: 0; transform: translateY(30px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); box-shadow: 0 20px 60px rgba(0,0,0,0.4); }
+            50% { transform: scale(1.05); box-shadow: 0 25px 70px rgba(0,0,0,0.5); }
+        }
+        #loginScreen.hidden {
+            opacity: 0;
+            visibility: hidden;
+            pointer-events: none;
+        }
+    </style>
+
+    <!-- Header -->
+    <header class="header">
+        <div class="header-content">
+            <h1><i class="fas fa-archive"></i> أرشيف بدر الخالص</h1>
+            <p class="subtitle">نظام إدارة البيانات والمستمسكات للمنظمين والمسؤولين</p>
+            <div class="author" style="margin-bottom: 0.8rem; background: rgba(201, 162, 39, 0.25); border-color: var(--accent);">
+                <i class="fas fa-crown" style="color: var(--accent);"></i>
+                مدير مكتب بدر الخالص: محمد الزهيري
+            </div>
+            <div class="author">
+                <i class="fas fa-user-tie"></i>
+                الإعلامي عباس بركات فرحان - مسؤول إعلام بدر الخالص
+            </div>
+        </div>
+    </header>
+
+    <!-- Stats -->
+    <div class="stats-bar">
+        <div class="stat-card">
+            <i class="fas fa-users"></i>
+            <div class="number" id="totalMembers">0</div>
+            <div class="label">المنظمين</div>
+        </div>
+        <div class="stat-card">
+            <i class="fas fa-user-shield"></i>
+            <div class="number" id="totalAdmins">0</div>
+            <div class="label">المسؤولين</div>
+        </div>
+        <div class="stat-card">
+            <i class="fas fa-file-alt"></i>
+            <div class="number" id="totalDocs">0</div>
+            <div class="label">المستمسكات</div>
+        </div>
+        <div class="stat-card">
+            <i class="fas fa-images"></i>
+            <div class="number" id="totalPhotos">0</div>
+            <div class="label">الصور</div>
+        </div>
+    </div>
+
+    <!-- Main Container -->
+    <div class="container">
+        <!-- Toolbar -->
+        <div class="toolbar">
+            <div class="search-box">
+                <i class="fas fa-search"></i>
+                <input type="text" id="searchInput" placeholder="ابحث بالاسم أو المنصب أو رقم الهاتف...">
+            </div>
+            <div class="filter-group">
+                <select id="categoryFilter" class="btn btn-secondary">
+                    <option value="all">جميع الفئات</option>
+                    <option value="منظم">منظم</option>
+                    <option value="مسؤول">مسؤول</option>
+                    <option value="ممارس">ممارس</option>
+                    <option value="إداري">إداري</option>
+                    <option value="إعلامي">إعلامي</option>
+                </select>
+                <button class="btn btn-secondary" onclick="exportData()">
+                    <i class="fas fa-download"></i> تصدير
+                </button>
+                <button class="btn btn-secondary" onclick="document.getElementById('importFile').click()">
+                    <i class="fas fa-upload"></i> استيراد
+                </button>
+                <input type="file" id="importFile" accept=".json" style="display:none" onchange="importData(this)">
+                <button class="btn btn-primary" onclick="openAddModal()">
+                    <i class="fas fa-plus"></i> إضافة جديد
+                </button>
+            </div>
+        </div>
+
+        <!-- Cards Grid -->
+        <div class="cards-grid" id="cardsGrid">
+            <!-- Cards will be inserted here -->
+        </div>
+
+        <!-- Empty State -->
+        <div class="empty-state" id="emptyState" style="display:none">
+            <i class="fas fa-folder-open"></i>
+            <h3>لا يوجد منظمين مسجلين</h3>
+            <p>اضغط على "إضافة جديد" لبدء التسجيل</p>
+        </div>
+    </div>
+
+    <!-- Add/Edit Modal -->
+    <div class="modal-overlay" id="memberModal">
+        <div class="modal">
+            <div class="modal-header">
+                <h2 id="modalTitle"><i class="fas fa-user-plus"></i> إضافة منظم جديد</h2>
+                <button class="close-btn" onclick="closeModal()"><i class="fas fa-times"></i></button>
+            </div>
+            <div class="modal-body">
+                <form id="memberForm">
+                    <input type="hidden" id="memberId">
+                    <div class="form-grid">
+                        <div class="form-group" style="grid-column: 1 / -1; text-align: center;">
+                            <div class="photo-upload" onclick="document.getElementById('photoInput').click()">
+                                <img id="photoPreview" class="photo-preview" alt="">
+                                <div id="uploadPlaceholder">
+                                    <i class="fas fa-camera"></i>
+                                    <p>اضغط لإضافة صورة شخصية</p>
+                                </div>
+                            </div>
+                            <input type="file" id="photoInput" accept="image/*" onchange="handlePhotoUpload(this)">
+                        </div>
+                        <div class="form-group">
+                            <label>الاسم الكامل *</label>
+                            <input type="text" id="fullName" required placeholder="أدخل الاسم الرباعي">
+                        </div>
+                        <div class="form-group">
+                            <label>الفئة *</label>
+                            <select id="category" required>
+                                <option value="">اختر الفئة</option>
+                                <option value="منظم">منظم</option>
+                                <option value="مسؤول">مسؤول</option>
+                                <option value="ممارس">ممارس</option>
+                                <option value="إداري">إداري</option>
+                                <option value="إعلامي">إعلامي</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>المنصب *</label>
+                            <input type="text" id="position" required placeholder="مثال: مسؤول إعلام">
+                        </div>
+                        <div class="form-group">
+                            <label>رقم الهاتف</label>
+                            <input type="tel" id="phone" placeholder="07XX XXX XXXX">
+                        </div>
+                        <div class="form-group">
+                            <label>البريد الإلكتروني</label>
+                            <input type="email" id="email" placeholder="example@email.com">
+                        </div>
+                        <div class="form-group">
+                            <label>رقم الهوية</label>
+                            <input type="text" id="idNumber" placeholder="رقم البطاقة الموحدة">
+                        </div>
+                        <div class="form-group">
+                            <label>تاريخ الميلاد</label>
+                            <input type="date" id="birthDate">
+                        </div>
+                        <div class="form-group" style="grid-column: 1 / -1;">
+                            <label>العنوان</label>
+                            <input type="text" id="address" placeholder="العنوان الكامل">
+                        </div>
+                        <div class="form-group" style="grid-column: 1 / -1;">
+                            <label>ملاحظات</label>
+                            <textarea id="notes" placeholder="أي ملاحظات إضافية..."></textarea>
+                        </div>
+                    </div>
+
+                    <div class="docs-section">
+                        <h3><i class="fas fa-images"></i> المستمسكات والوثائق</h3>
+                        <div class="docs-grid" id="docsGrid">
+                            <div class="add-doc-btn" onclick="document.getElementById('docsInput').click()">
+                                <i class="fas fa-plus-circle" style="font-size: 2rem; margin-bottom: 0.5rem;"></i>
+                                <p>إضافة وثيقة</p>
+                            </div>
+                        </div>
+                        <input type="file" id="docsInput" accept="image/*" multiple style="display:none" onchange="handleDocsUpload(this)">
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" onclick="closeModal()">إلغاء</button>
+                <button class="btn btn-primary" onclick="saveMember()">
+                    <i class="fas fa-save"></i> حفظ البيانات
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Detail Modal -->
+    <div class="modal-overlay" id="detailModal">
+        <div class="modal" style="max-width: 1000px;">
+            <div class="modal-header">
+                <h2><i class="fas fa-id-card"></i> بيانات المنظم</h2>
+                <div class="no-print">
+                    <button class="btn btn-accent" onclick="printMember()" style="margin-left: 1rem;">
+                        <i class="fas fa-print"></i> طباعة
+                    </button>
+                    <button class="close-btn" onclick="closeDetailModal()"><i class="fas fa-times"></i></button>
+                </div>
+            </div>
+            <div class="modal-body">
+                <div class="print-area" id="printArea">
+                    <div class="print-header">
+                        <h1><i class="fas fa-archive"></i> أرشيف بدر الخالص</h1>
+                        <div class="print-date" id="printDate"></div>
+                    </div>
+                    <div class="detail-content">
+                        <div class="detail-photo-section">
+                            <img id="detailPhoto" class="detail-photo" src="" alt="">
+                            <div class="detail-name" id="detailName"></div>
+                            <div class="detail-role" id="detailRole"></div>
+                        </div>
+                        <div class="detail-info" id="detailInfo">
+                            <!-- Info items will be inserted here -->
+                        </div>
+                        <div class="detail-docs">
+                            <h3><i class="fas fa-images"></i> المستمسكات والوثائق</h3>
+                            <div class="detail-docs-grid" id="detailDocs">
+                                <!-- Docs will be inserted here -->
+                            </div>
+                        </div>
+                    </div>
+                    <div class="print-footer">
+                        <p><i class="fas fa-user-tie"></i> تم إعداد هذا الأرشيف بواسطة: الإعلامي عباس بركات فرحان - مسؤول إعلام بدر الخالص</p>
+                        <p>تاريخ الطباعة: <span id="footerDate"></span></p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Image Viewer -->
+    <div class="image-viewer" id="imageViewer" onclick="closeImageViewer()">
+        <button class="close-viewer" onclick="closeImageViewer()"><i class="fas fa-times"></i></button>
+        <img id="viewerImage" src="" alt="">
+    </div>
+
+    <!-- Toast -->
+    <div class="toast" id="toast"></div>
+
+    <script>
+        // Data Management
+        let members = JSON.parse(localStorage.getItem('badrMembers')) || [];
+        let currentDocs = [];
+        let currentPhoto = '';
+        let editingId = null;
+        let viewingMember = null;
+
+        // Initialize
+        document.addEventListener('DOMContentLoaded', () => {
+            renderCards();
+            updateStats();
+
+            // Search functionality
+            document.getElementById('searchInput').addEventListener('input', (e) => {
+                renderCards(e.target.value, document.getElementById('categoryFilter').value);
+            });
+
+            // Category filter
+            document.getElementById('categoryFilter').addEventListener('change', (e) => {
+                renderCards(document.getElementById('searchInput').value, e.target.value);
+            });
+        });
+
+        // Render Cards
+        function renderCards(search = '', category = 'all') {
+            const grid = document.getElementById('cardsGrid');
+            const emptyState = document.getElementById('emptyState');
+
+            let filtered = members.filter(m => {
+                const matchSearch = !search || 
+                    m.fullName.includes(search) || 
+                    m.position.includes(search) || 
+                    (m.phone && m.phone.includes(search));
+                const matchCategory = category === 'all' || m.category === category;
+                return matchSearch && matchCategory;
+            });
+
+            if (filtered.length === 0) {
+                grid.innerHTML = '';
+                emptyState.style.display = 'block';
+                return;
+            }
+
+            emptyState.style.display = 'none';
+
+            grid.innerHTML = filtered.map(member => `
+                <div class="member-card" onclick="viewMember('${member.id}')">
+                    <div class="card-header">
+                        <img src="${member.photo || 'https://via.placeholder.com/90?text=No+Photo'}" 
+                             class="member-photo" alt="${member.fullName}" 
+                             onerror="this.src='https://via.placeholder.com/90?text=No+Photo'">
+                        <div class="member-info">
+                            <h3>${member.fullName}</h3>
+                            <span class="member-role">${member.position}</span>
+                            <div class="member-category">
+                                <i class="fas fa-tag"></i> ${member.category}
+                            </div>
+                        </div>
+                    </div>
+                    <div class="card-body">
+                        <div class="info-row">
+                            <i class="fas fa-phone"></i>
+                            <span class="label">الهاتف:</span>
+                            <span class="value">${member.phone || 'غير متوفر'}</span>
+                        </div>
+                        <div class="info-row">
+                            <i class="fas fa-id-card"></i>
+                            <span class="label">الهوية:</span>
+                            <span class="value">${member.idNumber || 'غير متوفر'}</span>
+                        </div>
+                        <div class="info-row">
+                            <i class="fas fa-map-marker-alt"></i>
+                            <span class="label">العنوان:</span>
+                            <span class="value">${member.address || 'غير متوفر'}</span>
+                        </div>
+                    </div>
+                    <div class="card-footer">
+                        <div class="docs-count">
+                            <i class="fas fa-images"></i>
+                            <span>${member.documents ? member.documents.length : 0} وثيقة</span>
+                        </div>
+                        <div class="card-actions no-print" onclick="event.stopPropagation()">
+                            <button class="icon-btn print-btn" onclick="quickPrint('${member.id}')" title="طباعة">
+                                <i class="fas fa-print"></i>
+                            </button>
+                            <button class="icon-btn" onclick="editMember('${member.id}')" title="تعديل">
+                                <i class="fas fa-edit"></i>
+                            </button>
+                            <button class="icon-btn delete-btn" onclick="deleteMember('${member.id}')" title="حذف">
+                                <i class="fas fa-trash"></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        // Update Stats
+        function updateStats() {
+            document.getElementById('totalMembers').textContent = members.length;
+            document.getElementById('totalAdmins').textContent = members.filter(m => m.category === 'مسؤول').length;
+            document.getElementById('totalDocs').textContent = members.reduce((sum, m) => sum + (m.documents ? m.documents.length : 0), 0);
+            document.getElementById('totalPhotos').textContent = members.filter(m => m.photo).length;
+        }
+
+        // Modal Functions
+        function openAddModal() {
+            editingId = null;
+            currentDocs = [];
+            currentPhoto = '';
+            document.getElementById('memberForm').reset();
+            document.getElementById('photoPreview').classList.remove('active');
+            document.getElementById('uploadPlaceholder').style.display = 'block';
+            document.getElementById('docsGrid').innerHTML = `
+                <div class="add-doc-btn" onclick="document.getElementById('docsInput').click()">
+                    <i class="fas fa-plus-circle" style="font-size: 2rem; margin-bottom: 0.5rem;"></i>
+                    <p>إضافة وثيقة</p>
+                </div>
+            `;
+            document.getElementById('modalTitle').innerHTML = '<i class="fas fa-user-plus"></i> إضافة منظم جديد';
+            document.getElementById('memberModal').classList.add('active');
+        }
+
+        function closeModal() {
+            document.getElementById('memberModal').classList.remove('active');
+        }
+
+        function closeDetailModal() {
+            document.getElementById('detailModal').classList.remove('active');
+        }
+
+        // Photo Upload
+        function handlePhotoUpload(input) {
+            const file = input.files[0];
+            if (!file) return;
+
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                currentPhoto = e.target.result;
+                const preview = document.getElementById('photoPreview');
+                preview.src = currentPhoto;
+                preview.classList.add('active');
+                document.getElementById('uploadPlaceholder').style.display = 'none';
+            };
+            reader.readAsDataURL(file);
+        }
+
+        // Docs Upload
+        function handleDocsUpload(input) {
+            const files = Array.from(input.files);
+            files.forEach(file => {
+                const reader = new FileReader();
+                reader.onload = (e) => {
+                    currentDocs.push({
+                        id: Date.now() + Math.random(),
+                        name: file.name,
+                        data: e.target.result
+                    });
+                    renderDocsGrid();
+                };
+                reader.readAsDataURL(file);
+            });
+            input.value = '';
+        }
+
+        function renderDocsGrid() {
+            const grid = document.getElementById('docsGrid');
+            const addBtn = `
+                <div class="add-doc-btn" onclick="document.getElementById('docsInput').click()">
+                    <i class="fas fa-plus-circle" style="font-size: 2rem; margin-bottom: 0.5rem;"></i>
+                    <p>إضافة وثيقة</p>
+                </div>
+            `;
+
+            const docs = currentDocs.map(doc => `
+                <div class="doc-item">
+                    <img src="${doc.data}" alt="${doc.name}" onclick="viewImage('${doc.data}')">
+                    <div class="doc-name">${doc.name}</div>
+                    <button class="remove-doc" onclick="removeDoc('${doc.id}')" title="حذف">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
+            `).join('');
+
+            grid.innerHTML = docs + addBtn;
+        }
+
+        function removeDoc(docId) {
+            currentDocs = currentDocs.filter(d => d.id != docId);
+            renderDocsGrid();
+        }
+
+        // Save Member
+        function saveMember() {
+            const fullName = document.getElementById('fullName').value.trim();
+            const category = document.getElementById('category').value;
+            const position = document.getElementById('position').value.trim();
+
+            if (!fullName || !category || !position) {
+                showToast('يرجى ملء الحقول الإلزامية', 'error');
+                return;
+            }
+
+            const member = {
+                id: editingId || Date.now().toString(),
+                fullName,
+                category,
+                position,
+                phone: document.getElementById('phone').value.trim(),
+                email: document.getElementById('email').value.trim(),
+                idNumber: document.getElementById('idNumber').value.trim(),
+                birthDate: document.getElementById('birthDate').value,
+                address: document.getElementById('address').value.trim(),
+                notes: document.getElementById('notes').value.trim(),
+                photo: currentPhoto,
+                documents: currentDocs,
+                createdAt: editingId ? members.find(m => m.id === editingId)?.createdAt || new Date().toISOString() : new Date().toISOString()
+            };
+
+            if (editingId) {
+                const index = members.findIndex(m => m.id === editingId);
+                members[index] = member;
+                showToast('تم تحديث البيانات بنجاح', 'success');
+            } else {
+                members.push(member);
+                showToast('تم إضافة المنظم بنجاح', 'success');
+            }
+
+            localStorage.setItem('badrMembers', JSON.stringify(members));
+            renderCards();
+            updateStats();
+            closeModal();
+        }
+
+        // View Member
+        function viewMember(id) {
+            const member = members.find(m => m.id === id);
+            if (!member) return;
+
+            viewingMember = member;
+
+            document.getElementById('detailPhoto').src = member.photo || 'https://via.placeholder.com/200?text=No+Photo';
+            document.getElementById('detailName').textContent = member.fullName;
+            document.getElementById('detailRole').textContent = member.position;
+
+            const infoItems = [
+                { icon: 'fa-tag', label: 'الفئة', value: member.category },
+                { icon: 'fa-phone', label: 'رقم الهاتف', value: member.phone || 'غير متوفر' },
+                { icon: 'fa-envelope', label: 'البريد الإلكتروني', value: member.email || 'غير متوفر' },
+                { icon: 'fa-id-card', label: 'رقم الهوية', value: member.idNumber || 'غير متوفر' },
+                { icon: 'fa-calendar', label: 'تاريخ الميلاد', value: member.birthDate || 'غير متوفر' },
+                { icon: 'fa-map-marker-alt', label: 'العنوان', value: member.address || 'غير متوفر' },
+                { icon: 'fa-sticky-note', label: 'ملاحظات', value: member.notes || 'لا توجد ملاحظات' }
+            ];
+
+            document.getElementById('detailInfo').innerHTML = infoItems.map(item => `
+                <div class="detail-info-item">
+                    <i class="fas ${item.icon}"></i>
+                    <div class="info-content">
+                        <h4>${item.label}</h4>
+                        <p>${item.value}</p>
+                    </div>
+                </div>
+            `).join('');
+
+            const docs = member.documents || [];
+            document.getElementById('detailDocs').innerHTML = docs.length > 0 ? docs.map(doc => `
+                <div class="detail-doc-item" onclick="viewImage('${doc.data}')">
+                    <img src="${doc.data}" alt="${doc.name}">
+                    <p>${doc.name}</p>
+                </div>
+            `).join('') : '<p style="color: var(--text-light); text-align: center; grid-column: 1/-1;">لا توجد مستمسكات</p>';
+
+            document.getElementById('detailModal').classList.add('active');
+        }
+
+        // Edit Member
+        function editMember(id) {
+            const member = members.find(m => m.id === id);
+            if (!member) return;
+
+            editingId = id;
+            currentDocs = member.documents ? [...member.documents] : [];
+            currentPhoto = member.photo || '';
+
+            document.getElementById('fullName').value = member.fullName;
+            document.getElementById('category').value = member.category;
+            document.getElementById('position').value = member.position;
+            document.getElementById('phone').value = member.phone || '';
+            document.getElementById('email').value = member.email || '';
+            document.getElementById('idNumber').value = member.idNumber || '';
+            document.getElementById('birthDate').value = member.birthDate || '';
+            document.getElementById('address').value = member.address || '';
+            document.getElementById('notes').value = member.notes || '';
+
+            if (currentPhoto) {
+                const preview = document.getElementById('photoPreview');
+                preview.src = currentPhoto;
+                preview.classList.add('active');
+                document.getElementById('uploadPlaceholder').style.display = 'none';
+            } else {
+                document.getElementById('photoPreview').classList.remove('active');
+                document.getElementById('uploadPlaceholder').style.display = 'block';
+            }
+
+            renderDocsGrid();
+            document.getElementById('modalTitle').innerHTML = '<i class="fas fa-edit"></i> تعديل بيانات المنظم';
+            document.getElementById('memberModal').classList.add('active');
+        }
+
+        // Delete Member
+        function deleteMember(id) {
+            if (!confirm('هل أنت متأكد من حذف هذا المنظم؟ لا يمكن التراجع عن هذا الإجراء.')) return;
+
+            members = members.filter(m => m.id !== id);
+            localStorage.setItem('badrMembers', JSON.stringify(members));
+            renderCards();
+            updateStats();
+            showToast('تم حذف المنظم بنجاح', 'success');
+        }
+
+        // Print Functions
+        function printMember() {
+            if (!viewingMember) return;
+
+            const now = new Date();
+            const dateStr = now.toLocaleDateString('ar-IQ', { 
+                year: 'numeric', month: 'long', day: 'numeric',
+                hour: '2-digit', minute: '2-digit'
+            });
+
+            document.getElementById('printDate').textContent = dateStr;
+            document.getElementById('footerDate').textContent = dateStr;
+
+            window.print();
+        }
+
+        function quickPrint(id) {
+            const member = members.find(m => m.id === id);
+            if (!member) return;
+
+            viewingMember = member;
+            viewMember(id);
+            setTimeout(() => printMember(), 300);
+        }
+
+        // Image Viewer
+        function viewImage(src) {
+            document.getElementById('viewerImage').src = src;
+            document.getElementById('imageViewer').classList.add('active');
+        }
+
+        function closeImageViewer() {
+            document.getElementById('imageViewer').classList.remove('active');
+        }
+
+        // Export/Import
+        function exportData() {
+            const dataStr = JSON.stringify(members, null, 2);
+            const blob = new Blob([dataStr], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `badr-archive-${new Date().toISOString().split('T')[0]}.json`;
+            a.click();
+            URL.revokeObjectURL(url);
+            showToast('تم تصدير البيانات بنجاح', 'success');
+        }
+
+        function importData(input) {
+            const file = input.files[0];
+            if (!file) return;
+
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                try {
+                    const data = JSON.parse(e.target.result);
+                    if (Array.isArray(data)) {
+                        if (confirm(`هل تريد استبدال البيانات الحالية (${members.length}) بالبيانات الجديدة (${data.length})؟`)) {
+                            members = data;
+                            localStorage.setItem('badrMembers', JSON.stringify(members));
+                            renderCards();
+                            updateStats();
+                            showToast('تم استيراد البيانات بنجاح', 'success');
+                        }
+                    } else {
+                        showToast('ملف غير صالح', 'error');
+                    }
+                } catch (err) {
+                    showToast('خطأ في قراءة الملف', 'error');
+                }
+            };
+            reader.readAsText(file);
+            input.value = '';
+        }
+
+        // Toast
+        function showToast(message, type = 'success') {
+            const toast = document.getElementById('toast');
+            toast.textContent = message;
+            toast.className = `toast ${type} show`;
+            setTimeout(() => toast.classList.remove('show'), 3000);
+        }
+
+        // Close modals on escape
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape') {
+                closeModal();
+                closeDetailModal();
+                closeImageViewer();
+            }
+        });
+
+        // Close modal on overlay click
+        document.querySelectorAll('.modal-overlay').forEach(overlay => {
+            overlay.addEventListener('click', (e) => {
+                if (e.target === overlay) {
+                    overlay.classList.remove('active');
+                }
+            });
+        });
+    
+        // Login System
+        const CORRECT_PASSWORD = "20262026";
+
+        function checkLogin() {
+            const input = document.getElementById('loginPassword').value;
+            const errorMsg = document.getElementById('loginError');
+
+            if (input === CORRECT_PASSWORD) {
+                document.getElementById('loginScreen').classList.add('hidden');
+                localStorage.setItem('badrLoggedIn', 'true');
+                showToast('تم تسجيل الدخول بنجاح - مرحباً بك في أرشيف بدر', 'success');
+            } else {
+                errorMsg.style.display = 'block';
+                document.getElementById('loginPassword').style.borderColor = '#ff6b6b';
+                document.getElementById('loginPassword').value = '';
+                document.getElementById('loginPassword').focus();
+                setTimeout(() => {
+                    errorMsg.style.display = 'none';
+                    document.getElementById('loginPassword').style.borderColor = 'var(--accent)';
+                }, 3000);
+            }
+        }
+
+        // Check if already logged in
+        if (localStorage.getItem('badrLoggedIn') === 'true') {
+            document.getElementById('loginScreen').classList.add('hidden');
+        }
+
+    </script>
+</body>
+</html>
