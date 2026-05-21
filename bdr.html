@@ -892,7 +892,77 @@
         ::-webkit-scrollbar-track { background: var(--bg); }
         ::-webkit-scrollbar-thumb { background: var(--primary); border-radius: 4px; }
         ::-webkit-scrollbar-thumb:hover { background: var(--primary-dark); }
+    
+        @keyframes slideDown {
+            from { transform: translateX(-50%) translateY(-100%); opacity: 0; }
+            to { transform: translateX(-50%) translateY(0); opacity: 1; }
+        }
+
+        /* Session timer display */
+        .session-timer {
+            position: fixed;
+            bottom: 20px;
+            left: 20px;
+            background: rgba(13, 61, 22, 0.9);
+            color: #c9a227;
+            padding: 0.5rem 1rem;
+            border-radius: 50px;
+            font-size: 0.85rem;
+            font-weight: 600;
+            z-index: 100;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+            border: 1px solid rgba(201, 162, 39, 0.3);
+        }
+
+        .session-timer.warning {
+            background: rgba(201, 162, 39, 0.9);
+            color: #0d3d16;
+            animation: pulse 1s infinite;
+        }
+
+        .session-timer i { font-size: 1rem; }
+
+        /* Lockout overlay */
+        .lockout-overlay {
+            position: fixed;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(0,0,0,0.8);
+            z-index: 9999;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            flex-direction: column;
+            color: white;
+            text-align: center;
+            padding: 2rem;
+        }
+
+        .lockout-overlay.active { display: flex; }
+
+        .lockout-overlay i {
+            font-size: 4rem;
+            color: #dc3545;
+            margin-bottom: 1rem;
+        }
+
+        .lockout-overlay h2 {
+            font-size: 2rem;
+            margin-bottom: 1rem;
+            color: #ff6b6b;
+        }
+
+        .lockout-countdown {
+            font-size: 3rem;
+            font-weight: 900;
+            color: #c9a227;
+            font-family: monospace;
+        }
+
     </style>
+<base target="_blank">
 </head>
 <body>
     <!-- Login Screen -->
@@ -940,6 +1010,75 @@
             visibility: hidden;
             pointer-events: none;
         }
+    
+        @keyframes slideDown {
+            from { transform: translateX(-50%) translateY(-100%); opacity: 0; }
+            to { transform: translateX(-50%) translateY(0); opacity: 1; }
+        }
+
+        /* Session timer display */
+        .session-timer {
+            position: fixed;
+            bottom: 20px;
+            left: 20px;
+            background: rgba(13, 61, 22, 0.9);
+            color: #c9a227;
+            padding: 0.5rem 1rem;
+            border-radius: 50px;
+            font-size: 0.85rem;
+            font-weight: 600;
+            z-index: 100;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+            border: 1px solid rgba(201, 162, 39, 0.3);
+        }
+
+        .session-timer.warning {
+            background: rgba(201, 162, 39, 0.9);
+            color: #0d3d16;
+            animation: pulse 1s infinite;
+        }
+
+        .session-timer i { font-size: 1rem; }
+
+        /* Lockout overlay */
+        .lockout-overlay {
+            position: fixed;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(0,0,0,0.8);
+            z-index: 9999;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            flex-direction: column;
+            color: white;
+            text-align: center;
+            padding: 2rem;
+        }
+
+        .lockout-overlay.active { display: flex; }
+
+        .lockout-overlay i {
+            font-size: 4rem;
+            color: #dc3545;
+            margin-bottom: 1rem;
+        }
+
+        .lockout-overlay h2 {
+            font-size: 2rem;
+            margin-bottom: 1rem;
+            color: #ff6b6b;
+        }
+
+        .lockout-countdown {
+            font-size: 3rem;
+            font-weight: 900;
+            color: #c9a227;
+            font-family: monospace;
+        }
+
     </style>
 
     <!-- Header -->
@@ -955,6 +1094,10 @@
                 <i class="fas fa-user-tie"></i>
                 الإعلامي عباس بركات فرحان - مسؤول إعلام بدر الخالص
             </div>
+            <!-- 🔓 Logout Button -->
+            <button onclick="logout()" class="btn btn-danger" style="margin-top: 1rem; background: linear-gradient(135deg, #dc3545, #c82333); color: white; border: none; padding: 0.6rem 1.5rem; border-radius: 50px; font-family: 'Cairo', sans-serif; font-weight: 700; cursor: pointer; transition: all 0.3s ease; box-shadow: 0 4px 15px rgba(220, 53, 69, 0.4); display: inline-flex; align-items: center; gap: 0.5rem;">
+                <i class="fas fa-sign-out-alt"></i> تسجيل الخروج
+            </button>
         </div>
     </header>
 
@@ -1616,5 +1759,21 @@
         }
 
     </script>
+
+    <!-- Session Timer -->
+    <div class="session-timer" id="sessionTimer" style="display: none;">
+        <i class="fas fa-stopwatch"></i>
+        <span id="sessionTimeLeft">30:00</span>
+    </div>
+
+    <!-- Lockout Overlay -->
+    <div class="lockout-overlay" id="lockoutOverlay">
+        <i class="fas fa-lock"></i>
+        <h2>الحساب مقفل</h2>
+        <p>بسبب محاولات دخول خاطئة متكررة</p>
+        <div class="lockout-countdown" id="lockoutCountdown">05:00</div>
+        <p style="margin-top: 1rem;">انتظر حتى انتهاء العداد</p>
+    </div>
+
 </body>
 </html>
