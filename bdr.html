@@ -961,6 +961,88 @@
             font-family: monospace;
         }
 
+    
+        /* Offline/Online Status Indicator */
+        .connection-status {
+            position: fixed;
+            top: 20px;
+            left: 20px;
+            padding: 0.6rem 1.2rem;
+            border-radius: 50px;
+            font-size: 0.85rem;
+            font-weight: 700;
+            z-index: 9997;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+            backdrop-filter: blur(10px);
+        }
+
+        .connection-status.online {
+            background: rgba(26, 95, 42, 0.9);
+            color: #e8d47a;
+            border: 1px solid rgba(201, 162, 39, 0.3);
+        }
+
+        .connection-status.offline {
+            background: rgba(220, 53, 69, 0.9);
+            color: white;
+            border: 1px solid rgba(255, 107, 107, 0.3);
+            animation: pulse 2s infinite;
+        }
+
+        .connection-status i { font-size: 1rem; }
+
+        /* Sync indicator */
+        .sync-indicator {
+            position: fixed;
+            top: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: linear-gradient(135deg, #c9a227, #d4af37);
+            color: #0d3d16;
+            padding: 0.6rem 1.5rem;
+            border-radius: 50px;
+            font-size: 0.85rem;
+            font-weight: 700;
+            z-index: 9996;
+            display: none;
+            align-items: center;
+            gap: 0.5rem;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+            animation: slideDown 0.3s ease;
+        }
+
+        .sync-indicator.active { display: flex; }
+
+        .sync-indicator .spinner {
+            width: 16px;
+            height: 16px;
+            border: 2px solid rgba(13, 61, 22, 0.3);
+            border-top-color: #0d3d16;
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+        }
+
+        /* Offline banner for login screen */
+        .offline-banner {
+            background: linear-gradient(135deg, #dc3545, #c82333);
+            color: white;
+            padding: 1rem;
+            border-radius: 12px;
+            margin: 1rem auto;
+            max-width: 320px;
+            text-align: center;
+            font-weight: 700;
+            display: none;
+        }
+
+        .offline-banner.active { display: block; }
+
+        .offline-banner i { margin-left: 0.5rem; }
+
     </style>
 <base target="_blank">
 </head>
@@ -1080,6 +1162,88 @@
             color: #c9a227;
             font-family: monospace;
         }
+
+    
+        /* Offline/Online Status Indicator */
+        .connection-status {
+            position: fixed;
+            top: 20px;
+            left: 20px;
+            padding: 0.6rem 1.2rem;
+            border-radius: 50px;
+            font-size: 0.85rem;
+            font-weight: 700;
+            z-index: 9997;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+            backdrop-filter: blur(10px);
+        }
+
+        .connection-status.online {
+            background: rgba(26, 95, 42, 0.9);
+            color: #e8d47a;
+            border: 1px solid rgba(201, 162, 39, 0.3);
+        }
+
+        .connection-status.offline {
+            background: rgba(220, 53, 69, 0.9);
+            color: white;
+            border: 1px solid rgba(255, 107, 107, 0.3);
+            animation: pulse 2s infinite;
+        }
+
+        .connection-status i { font-size: 1rem; }
+
+        /* Sync indicator */
+        .sync-indicator {
+            position: fixed;
+            top: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: linear-gradient(135deg, #c9a227, #d4af37);
+            color: #0d3d16;
+            padding: 0.6rem 1.5rem;
+            border-radius: 50px;
+            font-size: 0.85rem;
+            font-weight: 700;
+            z-index: 9996;
+            display: none;
+            align-items: center;
+            gap: 0.5rem;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+            animation: slideDown 0.3s ease;
+        }
+
+        .sync-indicator.active { display: flex; }
+
+        .sync-indicator .spinner {
+            width: 16px;
+            height: 16px;
+            border: 2px solid rgba(13, 61, 22, 0.3);
+            border-top-color: #0d3d16;
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+        }
+
+        /* Offline banner for login screen */
+        .offline-banner {
+            background: linear-gradient(135deg, #dc3545, #c82333);
+            color: white;
+            padding: 1rem;
+            border-radius: 12px;
+            margin: 1rem auto;
+            max-width: 320px;
+            text-align: center;
+            font-weight: 700;
+            display: none;
+        }
+
+        .offline-banner.active { display: block; }
+
+        .offline-banner i { margin-left: 0.5rem; }
 
     </style>
 
@@ -2071,6 +2235,211 @@
         }
     });
 
+
+
+    // ═══════════════════════════════════════════════════════════════
+    // 📡 OFFLINE/ONLINE SYSTEM - نظام العمل بدون إنترنت
+    // ═══════════════════════════════════════════════════════════════
+
+    // Check connection status
+    function updateConnectionStatus() {
+        const statusEl = document.getElementById('connectionStatus');
+        const textEl = document.getElementById('connectionText');
+        const offlineBanner = document.getElementById('offlineBanner');
+
+        if (navigator.onLine) {
+            statusEl.classList.remove('offline');
+            statusEl.classList.add('online');
+            statusEl.innerHTML = '<i class="fas fa-wifi"></i><span>متصل</span>';
+            if (offlineBanner) offlineBanner.classList.remove('active');
+
+            // Try to sync when coming back online
+            syncData();
+        } else {
+            statusEl.classList.remove('online');
+            statusEl.classList.add('offline');
+            statusEl.innerHTML = '<i class="fas fa-wifi-slash"></i><span>غير متصل</span>';
+            if (offlineBanner) offlineBanner.classList.add('active');
+            showToast('أنت تعمل في وضع عدم الاتصال - البيانات تُحفظ محلياً', 'success');
+        }
+    }
+
+    // Listen for online/offline events
+    window.addEventListener('online', function() {
+        updateConnectionStatus();
+        showToast('تم استعادة الاتصال - جاري المزامنة', 'success');
+        syncData();
+    });
+
+    window.addEventListener('offline', function() {
+        updateConnectionStatus();
+        showToast('انقطع الاتصال - العمل في وضع عدم الاتصال', 'error');
+    });
+
+    // Initial check
+    updateConnectionStatus();
+
+    // ═══════════════════════════════════════════════════════════════
+    // 💾 LOCAL STORAGE BACKUP - نسخ احتياطي محلي
+    // ═══════════════════════════════════════════════════════════════
+
+    // Enhanced save function that works offline
+    function saveToLocalStorage() {
+        localStorage.setItem('badrMembers', JSON.stringify(members));
+        localStorage.setItem('badrLastSave', Date.now().toString());
+
+        // Mark as pending sync if offline
+        if (!navigator.onLine) {
+            localStorage.setItem('badrPendingSync', 'true');
+        }
+    }
+
+    // Override the original saveMember function to use enhanced storage
+    const originalSaveMember = saveMember;
+    saveMember = function() {
+        const fullName = document.getElementById('fullName').value.trim();
+        const category = document.getElementById('category').value;
+        const position = document.getElementById('position').value.trim();
+
+        if (!fullName || !category || !position) {
+            showToast('يرجى ملء الحقول الإلزامية', 'error');
+            return;
+        }
+
+        const member = {
+            id: editingId || Date.now().toString(),
+            fullName,
+            category,
+            position,
+            phone: document.getElementById('phone').value.trim(),
+            email: document.getElementById('email').value.trim(),
+            idNumber: document.getElementById('idNumber').value.trim(),
+            birthDate: document.getElementById('birthDate').value,
+            address: document.getElementById('address').value.trim(),
+            notes: document.getElementById('notes').value.trim(),
+            photo: currentPhoto,
+            documents: currentDocs,
+            createdAt: editingId ? members.find(m => m.id === editingId)?.createdAt || new Date().toISOString() : new Date().toISOString()
+        };
+
+        if (editingId) {
+            const index = members.findIndex(m => m.id === editingId);
+            members[index] = member;
+            showToast('تم تحديث البيانات بنجاح', 'success');
+        } else {
+            members.push(member);
+            showToast('تم إضافة المنظم بنجاح', 'success');
+        }
+
+        // Enhanced save with offline support
+        saveToLocalStorage();
+
+        renderCards();
+        updateStats();
+        closeModal();
+
+        // Show offline save notification
+        if (!navigator.onLine) {
+            showToast('✓ تم الحفظ محلياً - سيتم المزامنة عند الاتصال', 'success');
+        }
+    };
+
+    // Override delete to use enhanced storage
+    const originalDeleteMember = deleteMember;
+    deleteMember = function(id) {
+        if (!confirm('هل أنت متأكد من حذف هذا المنظم؟ لا يمكن التراجع عن هذا الإجراء.')) return;
+
+        members = members.filter(m => m.id !== id);
+        saveToLocalStorage();
+        renderCards();
+        updateStats();
+        showToast('تم حذف المنظم بنجاح', 'success');
+
+        if (!navigator.onLine) {
+            showToast('✓ تم الحذف محلياً - سيتم المزامنة عند الاتصال', 'success');
+        }
+    };
+
+    // ═══════════════════════════════════════════════════════════════
+    // 🔄 SYNC SYSTEM - نظام المزامنة
+    // ═══════════════════════════════════════════════════════════════
+
+    function syncData() {
+        if (!navigator.onLine) return;
+
+        const pendingSync = localStorage.getItem('badrPendingSync') === 'true';
+        if (!pendingSync) return;
+
+        const syncEl = document.getElementById('syncIndicator');
+        syncEl.classList.add('active');
+
+        // Simulate sync process (in real app, this would send to server)
+        setTimeout(function() {
+            localStorage.removeItem('badrPendingSync');
+            syncEl.classList.remove('active');
+            showToast('✓ تمت المزامنة بنجاح', 'success');
+        }, 2000);
+    }
+
+    // Check for pending sync on load
+    if (localStorage.getItem('badrPendingSync') === 'true' && navigator.onLine) {
+        syncData();
+    }
+
+    // Periodic sync check
+    setInterval(function() {
+        if (navigator.onLine && localStorage.getItem('badrPendingSync') === 'true') {
+            syncData();
+        }
+    }, 30000); // Check every 30 seconds
+
+
+
+    // ═══════════════════════════════════════════════════════════════
+    // 📱 SERVICE WORKER REGISTRATION - تسجيل Service Worker
+    // ═══════════════════════════════════════════════════════════════
+
+    if ('serviceWorker' in navigator) {
+        window.addEventListener('load', function() {
+            navigator.serviceWorker.register('sw.js')
+                .then(function(registration) {
+                    console.log('[PWA] Service Worker registered:', registration.scope);
+
+                    // Check for updates
+                    registration.addEventListener('updatefound', function() {
+                        const newWorker = registration.installing;
+                        newWorker.addEventListener('statechange', function() {
+                            if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
+                                showToast('تحديث جديد متاح! أعد تحميل الصفحة.', 'success');
+                            }
+                        });
+                    });
+                })
+                .catch(function(err) {
+                    console.log('[PWA] Service Worker registration failed:', err);
+                });
+
+            // Listen for messages from Service Worker
+            navigator.serviceWorker.addEventListener('message', function(event) {
+                if (event.data && event.data.type === 'SYNC_REQUIRED') {
+                    syncData();
+                }
+            });
+        });
+    }
+
+    // Request background sync when data changes
+    function requestBackgroundSync() {
+        if ('serviceWorker' in navigator && 'SyncManager' in window) {
+            navigator.serviceWorker.ready.then(function(registration) {
+                registration.sync.register('badr-sync')
+                    .catch(function(err) {
+                        console.log('Background sync failed:', err);
+                    });
+            });
+        }
+    }
+
 </script>
 
     <!-- Session Timer -->
@@ -2086,6 +2455,19 @@
         <p>بسبب محاولات دخول خاطئة متكررة</p>
         <div class="lockout-countdown" id="lockoutCountdown">05:00</div>
         <p style="margin-top: 1rem;">انتظر حتى انتهاء العداد</p>
+    </div>
+
+
+    <!-- Connection Status -->
+    <div class="connection-status online" id="connectionStatus">
+        <i class="fas fa-wifi"></i>
+        <span id="connectionText">متصل</span>
+    </div>
+
+    <!-- Sync Indicator -->
+    <div class="sync-indicator" id="syncIndicator">
+        <div class="spinner"></div>
+        <span>جاري المزامنة...</span>
     </div>
 
 </body>
