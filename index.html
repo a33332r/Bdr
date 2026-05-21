@@ -2,8 +2,10 @@
 <html lang="ar" dir="rtl">
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta http-equiv="refresh" content="0; url=bdr.html">
     <title>أرشيف بدر الخالص - نظام إدارة المنظمين</title>
+    <link rel="manifest" href="manifest.json">
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body {
@@ -45,6 +47,15 @@
             background: #c9a227;
             color: #0d3d16;
         }
+        .offline-msg {
+            margin-top: 1rem;
+            padding: 1rem;
+            background: rgba(220, 53, 69, 0.3);
+            border: 1px solid rgba(255, 107, 107, 0.5);
+            border-radius: 8px;
+            display: none;
+        }
+        .offline-msg.active { display: block; }
     </style>
 <base target="_blank">
 </head>
@@ -54,6 +65,14 @@
         <h1>أرشيف بدر الخالص</h1>
         <p>جاري التوجيه إلى النظام...</p>
         <a href="bdr.html">اضغط هنا إذا لم يتم التوجيه تلقائياً</a>
+        <div class="offline-msg" id="offlineMsg">
+            <i class="fas fa-wifi-slash"></i> أنت غير متصل بالإنترنت - سيتم تحميل النسخة المحلية
+        </div>
     </div>
+    <script>
+        if (!navigator.onLine) {
+            document.getElementById('offlineMsg').classList.add('active');
+        }
+    </script>
 </body>
 </html>
